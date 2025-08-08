@@ -1,19 +1,19 @@
 import {Client, Command, MetadataBearer} from '@smithy/types';
-import sinon, {SinonSandbox, SinonStub} from 'sinon';
+import sinon, {SinonSandbox, SinonSpy} from 'sinon';
 import {isSinonProxy} from './sinon';
-import {AwsClientStub, AwsStub} from './awsClientStub';
+import {AwsClientSpy, AwsSpy} from './awsClientSpy';
 
 /**
- * Creates and attaches a stub of the `Client#send()` method. Only this single method is mocked.
- * If method is already a stub, it's replaced.
+ * Creates and attaches a stub of the `Client#send()` method. Only this single method is spied.
+ * If method is already a spy, it's replaced.
  * @param client `Client` type or instance to replace the method
  * @param sandbox Optional sinon sandbox to use
- * @return Stub allowing to configure Client's behavior
+ * @return Spy allowing to configure Client's behavior
  */
-export const mockClient = <TInput extends object, TOutput extends MetadataBearer, TConfiguration>(
+export const spyClient = <TInput extends object, TOutput extends MetadataBearer, TConfiguration>(
     client: InstanceOrClassType<Client<TInput, TOutput, TConfiguration>>,
     {sandbox}: { sandbox?: SinonSandbox } = {},
-): AwsClientStub<Client<TInput, TOutput, TConfiguration>> => {
+): AwsClientSpy<Client<TInput, TOutput, TConfiguration>> => {
     const instance = isClientInstance(client) ? client : client.prototype;
 
     const send = instance.send;
@@ -22,10 +22,10 @@ export const mockClient = <TInput extends object, TOutput extends MetadataBearer
     }
 
     const sinonSandbox = sandbox || sinon;
-    const sendStub = sinonSandbox.stub(instance, 'send') as SinonStub<[Command<TInput, any, TOutput, any, any>], Promise<TOutput>>;
+    const sendStub = sinonSandbox.spy(instance, 'send') as SinonSpy<[Command<TInput, any, TOutput, any, any>], Promise<TOutput>>;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return new AwsStub<TInput, TOutput, TConfiguration>(instance, sendStub);
+    return new AwsSpy<TInput, TOutput, TConfiguration>(instance, sendStub);
 };
 
 type ClassType<T> = {
